@@ -2,11 +2,17 @@
     "1": {
         "name": "Alejandro Rendon",
         "password": "1010101010",
-        "balance": 2000.0
+        "balance": 2000.0,
+        "transactions": [
+
+        ]
     },
     "2": {
         "name": "Sofia Rodriguez",
         "password": "2020202020",
-        "balance": 2000.0
+        "balance": 2000.0,
+        "transactions": [
+            
+        ]
     }
 }

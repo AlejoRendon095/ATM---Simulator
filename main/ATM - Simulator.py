@@ -1,12 +1,13 @@
 import json
 import os
+import random
 
 def create_account(count, accounts_path):
     name = input("Enter your name: ")
     password = input("Enter your password: ")
     if len(password) < 6:
         print("Password must be at least 6 characters long.")
-        return
+        return 0
     balance = float(input("Enter your initial balance: "))
 
     os.makedirs("src/data", exist_ok=True)
@@ -15,36 +16,62 @@ def create_account(count, accounts_path):
 
     if os.path.exists(accounts_path):
         with open(accounts_path, "r", encoding="utf-8") as file:
-            accounts = json.load(file)
+            try:
+                accounts = json.load(file)
+            except json.JSONDecodeError:
+                print("Error reading accounts file. It may be corrupted.")
+                accounts = {}
+                return 0
     else:
         accounts = {}
     
 
-    accounts[str(count)] = { "name": name, "password": password, "balance": balance} 
+    accounts[str(count + random.randint(1,1000))] = { "name": name, "password": password, "balance": balance , "transactions": [""] } 
 
 
 
     with open(accounts_path,  "w", encoding="utf-8") as file:
-            file.write(json.dumps(accounts, indent=4))
-    print(f"Account created successfully! Your account number is {count}.")
+            json.dump(accounts, file, indent=4, ensure_ascii=False)
+
+    print(f"Account created successfully! Your account number is {accounts.keys}.")
     return 1   
     
 def mainController():
     print("Please select an option:\n 1. Create Account\n 2. Login\n 0. Exit")
-    num = int(input("Enter your choice: "))
-    return num
+    return int(input("Enter your choice: "))
 
 def check_balance(accout):
     print("Your current balance is: ", accout["balance"])    
 
-def deposit():
-    print("soon")
+def deposit(account):
+    value = float(input("Enter the amount to desposit: "))
+    if value <= 0:
+        print("Deposit amount must be greater than zero.")
+        return
+    account["balance"] += value
+    account["transactions"].append(f"Deposited: {value}")
+    print(f"You have successfully deposited {value} into your account.")
 
-def withdraw():
-    print("soon")
 
-def view_transactions():
-    print("soon")
+def withdraw(account):
+    value = float(input("Enter the amount to withdraw: "))
+    if value <= 0:
+        print("Withdrawal amount must be greater than zero.")
+        return
+    if value > account["balance"]:
+        print("Insufficient balance for this withdrawal.")
+        return
+    account["balance"] -= value
+    account["transactions"].append(f"Withdrew: {value}")
+    print(f"You have successfully withdrawn {value} from your account.")
+
+def view_transactions(account):
+    print("Your transactions:")
+    if not account["transactions"]:
+        print("No transactions found.")
+    else:
+        for transaction in account["transactions"]:
+            print(transaction)
 
 def logout():
     print("You have been logged out.\n")
@@ -65,18 +92,18 @@ def management_controller(isLoggedIn, accounts):
         if choice == "1":
             check_balance(accounts)
         elif choice == "2":
-            deposit()
+            deposit(accounts)
         elif choice == "3":
-            withdraw()
+            withdraw(accounts)
         elif choice == "4":
-            view_transactions()
+            view_transactions(accounts)
         elif choice == "5":
             isLoggedIn = logout()
         else:
             print("Invalid option. Please try again.")
 
 def login(accounts_path):
-    with open("src/data/accounts.json", "r", encoding="utf-8") as file:
+    with open(accounts_path, "r", encoding="utf-8") as file:
         accounts = json.load(file)
 
     for i in range  (accounts.__len__()):
